@@ -12,6 +12,12 @@ const envSchema = z.object({
   CLIENT_URL: z.url(),
 
   DATABASE_URL: z.string().min(1),
+
+  BETTER_AUTH_SECRET: z.string().min(32),
+  BETTER_AUTH_URL: z.url(),
+
+  RESEND_API_KEY: z.string().min(1),
+  EMAIL_FROM: z.string().min(1),
 });
 
 const parsed = envSchema.safeParse(process.env);

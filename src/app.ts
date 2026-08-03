@@ -6,6 +6,8 @@ import morgan from "morgan";
 import { env } from "./config/env.js";
 import { notFoundHandler } from "./middleware/not-found.js";
 import { errorHandler } from "./middleware/error-handler.js";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./lib/auth.js";
 
 const app = express();
 
@@ -21,6 +23,9 @@ app.use(
 if (env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
+
+// MUST stay above express.json() — Better Auth reads the raw request body.
+app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use(express.json());
 
