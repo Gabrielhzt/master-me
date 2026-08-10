@@ -18,6 +18,10 @@ export const createCourse: RequestHandler = async (req, res, next) => {
 
   const controller = new AbortController();
 
+  req.on("close", () => {
+    controller.abort();
+  });
+
   try {
     const result = await courseService.createCourse({
       topic: parsed.data.topic,
