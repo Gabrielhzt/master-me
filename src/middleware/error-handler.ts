@@ -11,6 +11,9 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   const status = httpErr.statusCode ?? httpErr.status ?? 500;
 
   if (status < 500) {
+    if (!httpErr.expose) {
+      console.error("Unexpected 4xx Error:", err);
+    }
     res.status(status).json({
       message: httpErr.expose ? httpErr.message : "Bad request",
     });

@@ -29,7 +29,12 @@ export function findCourseBySlug(slug: string) {
       chapters: {
         orderBy: (c, { asc }) => [asc(c.position)],
         with: {
-          lessons: { orderBy: (l, { asc }) => [asc(l.position)] },
+          lessons: {
+            columns: {
+              contents: false,
+            },
+            orderBy: (l, { asc }) => [asc(l.position)],
+          },
         },
       },
     },

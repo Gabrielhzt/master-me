@@ -11,6 +11,7 @@ import { auth } from "./lib/auth.js";
 import { coursesRouter } from "./features/courses/courses.routes.js";
 import { coursesLimiter } from "./features/courses/courses.middleware.js";
 import { requireAuth } from "./middleware/require-auth.js";
+import { lessonsRouter } from "./features/lessons/lessons.routes.js";
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/courses", requireAuth, coursesLimiter, coursesRouter);
+app.use("/lessons", requireAuth, coursesLimiter, lessonsRouter);
 
 // Must be after routes
 app.use(notFoundHandler);
