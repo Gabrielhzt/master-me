@@ -1,0 +1,369 @@
+openapi: 3.1.0
+info:
+  title: Master-me API
+  description: API documentation for Master-me, an AI-powered course and lesson generation platform.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns the status of the server to check if it's running.
+      responses:
+        "200":
+          description: Server is running normally.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /courses:
+    post:
+      summary: Create or retrieve a course
+      description: |
+        Accepts a topic, checks if a course on that topic already exists in the catalog.
+        If it does, returns the cached course structure and enrolls the user.
+        If not, validates if the topic is a valid software development technology/framework,
+        generates the course structure using AI, saves it, enrolls the user, and returns it.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                topic:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  description: The programming language or framework to generate a course for.
+                  example: React Native
+              required:
+                - topic
+      responses:
+        "200":
+          description: Course outline retrieved from the catalog cache.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+        "201":
+          description: Course outline generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+        "400":
+          description: Invalid request body structure.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized. The request lacks valid session authentication.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Unprocessable entity. The topic was rejected because it is not recognized as a software development technology or framework.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Too many requests. Rate limit exceeded (10 requests per minute).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          headers:
+            RateLimit-Limit:
+              schema:
+                type: integer
+              description: The number of allowed requests in the current period.
+            RateLimit-Remaining:
+              schema:
+                type: integer
+              description: The number of remaining requests in the current period.
+            RateLimit-Reset:
+              schema:
+                type: integer
+              description: The number of seconds remaining until the rate limit resets.
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /lessons/{id}:
+    put:
+      summary: Generate content for a lesson
+      description: |
+        Generates comprehensive markdown content for a lesson using AI and updates the database record.
+        Only allows generation if the lesson content is currently empty.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique UUID of the lesson.
+          schema:
+            type: string
+            format: uuid
+            example: 123e4567-e89b-12d3-a456-426614174000
+      responses:
+        "200":
+          description: Detailed lesson contents generated and returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lesson"
+        "400":
+          description: Invalid UUID format, or lesson already contains content.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized. The request lacks valid session authentication.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Lesson not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Too many requests. Rate limit exceeded (10 requests per minute).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          headers:
+            RateLimit-Limit:
+              schema:
+                type: integer
+              description: The number of allowed requests in the current period.
+            RateLimit-Remaining:
+              schema:
+                type: integer
+              description: The number of remaining requests in the current period.
+            RateLimit-Reset:
+              schema:
+                type: integer
+              description: The number of seconds remaining until the rate limit resets.
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: better-auth.session_token
+      description: Authentication session cookie managed by Better Auth.
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Authentication token provided as a Bearer token in the Authorization header.
+  schemas:
+    Course:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the course.
+          example: a4b12c85-bd91-4473-b788-b2a6886fe243
+        slug:
+          type: string
+          description: URL-friendly unique representation of the course topic.
+          example: react-native
+        topic:
+          type: string
+          description: The canonical, normalized name of the technology.
+          example: React Native
+        title:
+          type: string
+          description: Course title.
+          example: Mastering React Native
+        description:
+          type: string
+          description: A summary describing what the course covers.
+          example: An in-depth guide to building cross-platform mobile apps with React Native.
+        level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+          description: The target difficulty level.
+          example: intermediate
+        prerequisites:
+          type: array
+          items:
+            type: string
+          description: The knowledge required before starting the course.
+          example: ["JavaScript basics", "React component model"]
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the course was created.
+          example: "2026-08-11T13:30:00.000Z"
+        chapters:
+          type: array
+          items:
+            $ref: "#/components/schemas/Chapter"
+      required:
+        - id
+        - slug
+        - topic
+        - title
+        - description
+        - level
+        - prerequisites
+        - createdAt
+        - chapters
+
+    Chapter:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the chapter.
+          example: c9d8e7f6-5544-3322-1100-abcdef123456
+        courseId:
+          type: string
+          format: uuid
+          description: The ID of the course this chapter belongs to.
+          example: a4b12c85-bd91-4473-b788-b2a6886fe243
+        position:
+          type: integer
+          description: The order position of this chapter within the course (0-indexed).
+          example: 0
+        title:
+          type: string
+          description: Chapter title.
+          example: Introduction to Mobile Components
+        summary:
+          type: string
+          description: Brief summary of the chapter contents.
+          example: Learn about native views, building layouts with Flexbox, and core components.
+        lessons:
+          type: array
+          items:
+            $ref: "#/components/schemas/LessonSummary"
+      required:
+        - id
+        - courseId
+        - position
+        - title
+        - summary
+        - lessons
+
+    LessonSummary:
+      type: object
+      description: Lesson details without the main content body.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the lesson.
+          example: d8e7f6a5-bcde-f012-3456-789abcdef012
+        chapterId:
+          type: string
+          format: uuid
+          description: The ID of the chapter this lesson belongs to.
+          example: c9d8e7f6-5544-3322-1100-abcdef123456
+        position:
+          type: integer
+          description: The order position of this lesson within the chapter (0-indexed).
+          example: 0
+        title:
+          type: string
+          description: Lesson title.
+          example: Styling with StyleSheet API
+        objectives:
+          type: array
+          items:
+            type: string
+          description: Learning objectives for the lesson.
+          example:
+            [
+              "Create component styles",
+              "Understand differences between CSS and StyleSheet",
+              "Apply dynamic styles",
+            ]
+      required:
+        - id
+        - chapterId
+        - position
+        - title
+        - objectives
+
+    Lesson:
+      type: object
+      description: Detailed lesson record including generated markdown content.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the lesson.
+          example: d8e7f6a5-bcde-f012-3456-789abcdef012
+        title:
+          type: string
+          description: Lesson title.
+          example: Styling with StyleSheet API
+        objectives:
+          type: array
+          items:
+            type: string
+          description: Learning objectives for the lesson.
+          example:
+            [
+              "Create component styles",
+              "Understand differences between CSS and StyleSheet",
+              "Apply dynamic styles",
+            ]
+        contents:
+          type: string
+          nullable: true
+          description: Detailed lesson content in Markdown format.
+          example: "# Styling in React Native\nReact Native uses StyleSheet..."
+      required:
+        - id
+        - title
+        - objectives
+        - contents
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: User-friendly error message description.
+          example: Invalid request body
+        issues:
+          type: array
+          description: Zod validation error details (if applicable).
+          items:
+            type: object
+      required:
+        - message
