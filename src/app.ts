@@ -8,6 +8,9 @@ import { notFoundHandler } from "./middleware/not-found.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth.js";
+import { coursesRouter } from "./features/courses/courses.routes.js";
+import { coursesLimiter } from "./features/courses/courses.middleware.js";
+import { requireAuth } from "./middleware/require-auth.js";
 
 const app = express();
 
@@ -35,8 +38,7 @@ app.get("/health", (_req, res) => {
   });
 });
 
-// Routes go here
-// app.use("/auth", authRoutes);
+app.use("/courses", requireAuth, coursesLimiter, coursesRouter);
 
 // Must be after routes
 app.use(notFoundHandler);

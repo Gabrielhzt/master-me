@@ -13,6 +13,7 @@ This is the REST API, built with Express 5, TypeScript, Postgres, and Better Aut
 | Database | Postgres + [Drizzle ORM](https://orm.drizzle.team) |
 | Auth | [Better Auth](https://better-auth.com) — magic link |
 | Email | [Resend](https://resend.com) |
+| AI | [Vercel AI SDK](https://ai-sdk.dev) + [Groq](https://groq.com) |
 | Validation | [Zod](https://zod.dev) |
 
 ## Setup
@@ -76,6 +77,7 @@ The API runs on `http://localhost:3001`.
 | `BETTER_AUTH_URL` | This API's own origin, where auth routes are mounted |
 | `RESEND_API_KEY` | From https://resend.com/api-keys |
 | `EMAIL_FROM` | Sender address for magic link emails |
+| `GROQ_API_KEY` | From https://console.groq.com/keys — used for course generation |
 
 ## API
 
@@ -85,8 +87,27 @@ The API runs on `http://localhost:3001`.
 | `POST /api/auth/sign-in/magic-link` | Request a magic link (`{ "email": "..." }`) |
 | `GET /api/auth/magic-link/verify` | Follow the emailed link — sets a session cookie |
 | `GET /api/auth/get-session` | Current session for the request's cookie |
+| `POST /courses` | Generate or fetch a course (`{ "topic": "expressjs" }`) — requires a session |
 
 Better Auth mounts additional routes under `/api/auth/*` — see its docs for the full list.
+
+### `POST /courses`
+
+Courses live in a **shared catalog**, keyed by a slug derived from the model's
+canonical name — so `expressjs`, `Express.js` and `express` all resolve to the
+same course rather than generating duplicates.
+
+| Response | When |
+|---|---|
+| `201` | Catalog miss — the course was generated and stored |
+| `200` | Catalog hit — returned from the database, no generation |
+| `400` | Body failed validation (includes zod `issues`) |
+| `422` | Topic is not a programming language or framework |
+| `401` | No session |
+| `429` | Rate limit — 10 requests per minute |
+
+The caller is enrolled in the course either way. Generation costs tokens only on
+a miss; every later request for the same topic is a database read.
 
 Errors are always JSON: `{ "message": "..." }`. Client errors keep their status
 (400, 404, 413, ...); anything unexpected is logged server-side and returned as a
@@ -101,13 +122,27 @@ src/
 ├── config/env.ts             # Zod-validated environment, parsed once at boot
 ├── db/
 │   ├── index.ts              # Drizzle client
-│   └── schema/               # One file per table, re-exported from index.ts
+│   └── schema/               # One file per domain, re-exported from index.ts
+├── features/
+│   └── courses/
+│       ├── courses.routes.ts      # Paths only
+│       ├── courses.controller.ts  # HTTP in/out, status codes
+│       ├── courses.middleware.ts  # Rate limiter — LLM calls are expensive
+│       ├── courses.service.ts     # Orchestration only, no LLM or DB code
+│       ├── courses.ai.ts          # LLM calls: classify, research, generate
+│       ├── courses.repository.ts  # DB access: find, persist, enroll
+│       └── courses.schemas.ts     # Zod schemas (request + model output)
 ├── lib/
+│   ├── ai.ts                 # Groq model — must support json_schema
 │   ├── auth.ts               # Better Auth config
-│   └── email.ts              # Resend wrapper
-└── middleware/
-    ├── error-handler.ts      # Terminal error handler — registered last
-    └── not-found.ts          # 404 as JSON
+│   ├── email.ts              # Resend wrapper
+│   └── errors.ts             # AppError + friends, carry statusCode/expose
+├── middleware/
+│   ├── error-handler.ts      # Terminal error handler — registered last
+│   ├── require-auth.ts       # Session gate, sets res.locals.user
+│   └── not-found.ts          # 404 as JSON
+└── types/
+    └── express.ts            # Augments res.locals.user — see Gotchas
 ```
 
 `app.ts` deliberately does not call `listen()`. That keeps it importable by tests
@@ -129,3 +164,11 @@ Things that will cost you an hour if you forget them:
 - **Resend won't send to fake domains** like `example.com`; those fail with a 422.
   Until you verify a sending domain you can only deliver to `delivered@resend.dev`
   or the address on your own Resend account.
+- **Never write a new `.d.ts` file.** `skipLibCheck: true` skips checking *any*
+  `.d.ts`, including your own — a broken import inside one fails silently and
+  `tsc` reports zero errors. `src/types/express.ts` is a plain `.ts` file
+  specifically because of this; use the same for any future global augmentation.
+- **Groq's daily token limit is a sliding window, not a fixed reset.** A tiny
+  test call succeeding doesn't mean there's headroom for a real course
+  generation (~1,000–3,000+ tokens across three calls). If you hit a
+  `RetryError` mentioning `tokens per day (TPD)`, wait the exact time it reports.

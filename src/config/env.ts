@@ -17,7 +17,11 @@ const envSchema = z.object({
   BETTER_AUTH_URL: z.url(),
 
   RESEND_API_KEY: z.string().min(1),
-  EMAIL_FROM: z.string().min(1),
+  EMAIL_FROM: z.email(),
+
+  GROQ_API_KEY: z
+    .string()
+    .startsWith("gsk_", "Groq API keys start with 'gsk_'"),
 });
 
 const parsed = envSchema.safeParse(process.env);
