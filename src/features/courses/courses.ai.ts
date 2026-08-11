@@ -48,7 +48,8 @@ export async function researchTopic(
       prompt:
         `Search the web for the current state of ${canonicalName}: latest ` +
         "stable version, notable recent changes, and the core concepts a " +
-        "2026 course should cover. Summarize in a few short paragraphs.",
+        `${new Date().getFullYear()} course should cover. Summarize in a few ` +
+        "short paragraphs.",
     });
 
     return text;
