@@ -11,3 +11,4 @@ const groq = createGroq({
 // and fail with a 400.
 // https://console.groq.com/docs/structured-outputs#supported-models
 export const courseModel = groq("openai/gpt-oss-20b");
+export const lessonModel = courseModel;

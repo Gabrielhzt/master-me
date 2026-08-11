@@ -55,6 +55,7 @@ export const lesson = pgTable(
       .references(() => chapter.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
     title: text("title").notNull(),
+    contents: text("contents"),
     objectives: text("objectives").array().notNull().default([]),
   },
   (table) => [
