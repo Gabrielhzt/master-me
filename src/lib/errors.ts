@@ -23,12 +23,6 @@ export class NotFoundError extends AppError {
   }
 }
 
-export class ForbiddenError extends AppError {
-  constructor(message = "Forbidden") {
-    super(message, 403);
-  }
-}
-
 export class UnprocessableEntityError extends AppError {
   constructor(message = "Unprocessable entity") {
     super(message, 422);
