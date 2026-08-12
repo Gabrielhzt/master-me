@@ -1,7 +1,9 @@
 import { Router } from "express";
 
-import { createLessonContent } from "./lessons.controller.js";
+import { createLessonContent, setLessonProgress } from "./lessons.controller.js";
+import { coursesLimiter } from "../courses/courses.middleware.js";
 
 export const lessonsRouter = Router();
 
-lessonsRouter.put("/:id", createLessonContent);
+lessonsRouter.put("/:id", coursesLimiter, createLessonContent);
+lessonsRouter.post("/:id/progress", setLessonProgress);

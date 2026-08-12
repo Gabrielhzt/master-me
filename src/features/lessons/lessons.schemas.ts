@@ -9,3 +9,7 @@ export const lessonContentSchema = z.object({
     .string()
     .describe("The content of the lesson in markdown format"),
 });
+
+export const lessonProgressBodySchema = z.object({
+  status: z.enum(["in_progress", "completed"]),
+});
