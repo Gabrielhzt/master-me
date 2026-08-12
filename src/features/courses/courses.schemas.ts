@@ -5,6 +5,10 @@ export const createCourseSchema = z.object({
   topic: z.string().min(1).max(100),
 });
 
+export const courseParamsSchema = z.object({
+  slug: z.string().min(1),
+});
+
 /** First pass: is this a technology, and what is it actually called? */
 export const classificationSchema = z.object({
   accepted: z

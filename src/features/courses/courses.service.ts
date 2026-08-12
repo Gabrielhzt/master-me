@@ -1,11 +1,6 @@
-import { UnprocessableEntityError } from "../../lib/errors.js";
+import { NotFoundError, UnprocessableEntityError } from "../../lib/errors.js";
 import { classifyTopic, researchTopic, generateCourse } from "./courses.ai.js";
-import {
-  slugify,
-  findCourseBySlug,
-  persistCourse,
-  enroll,
-} from "./courses.repository.js";
+import { coursesRepository } from "./courses.repository.js";
 
 export const courseService = {
   async createCourse(input: {
@@ -21,9 +16,9 @@ export const courseService = {
       );
     }
 
-    const slug = slugify(classification.canonicalName);
+    const slug = coursesRepository.slugify(classification.canonicalName);
 
-    let existing = await findCourseBySlug(slug);
+    let existing = await coursesRepository.findCourseBySlug(slug);
     const cached = Boolean(existing);
 
     // Catalog miss — generate once, then everyone else reuses it for free.
@@ -39,7 +34,7 @@ export const courseService = {
         input.signal,
       );
 
-      await persistCourse({
+      await coursesRepository.persistCourse({
         slug,
         topic: classification.canonicalName,
         generated,
@@ -47,15 +42,25 @@ export const courseService = {
 
       // Re-read rather than using the insert result: if we lost the race, this
       // returns the course the winner wrote.
-      existing = await findCourseBySlug(slug);
+      existing = await coursesRepository.findCourseBySlug(slug);
     }
 
     if (!existing) {
       throw new Error(`Course ${slug} missing after write`);
     }
 
-    await enroll(input.userId, existing.id);
+    await coursesRepository.enroll(input.userId, existing.id);
 
     return { course: existing, cached };
+  },
+
+  async getCourseBySlug(slug: string) {
+    const course = await coursesRepository.findCourseBySlug(slug);
+
+    if (!course) {
+      throw new NotFoundError(`Course "${slug}" not found`);
+    }
+
+    return course;
   },
 };
