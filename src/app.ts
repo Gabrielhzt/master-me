@@ -40,7 +40,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/courses", requireAuth, coursesLimiter, coursesRouter);
-app.use("/lessons", requireAuth, coursesLimiter, lessonsRouter);
+app.use("/lessons", requireAuth, lessonsRouter);
 
 // Must be after routes
 app.use(notFoundHandler);

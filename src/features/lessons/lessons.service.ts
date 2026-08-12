@@ -34,11 +34,19 @@ export const lessonsService = {
     return lessonsRepository.findById(lessonId);
   },
 
+  getLessonProgress: async (lessonId: string, userId: string) => {
+    return lessonsRepository.findProgress(userId, lessonId);
+  },
+
   isUserEnrolled: async (userId: string, courseId: string) => {
     return lessonsRepository.findEnrollment(userId, courseId);
   },
 
   updateLessonContents: async (lessonId: string, contents: string) => {
     return lessonsRepository.update(lessonId, contents);
+  },
+
+  setLessonProgressStatus: async (lessonId: string, userId: string, status: "in_progress" | "completed") => {
+    return lessonsRepository.upsertProgress(userId, lessonId, status);
   }
 };

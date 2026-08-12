@@ -1,4 +1,3 @@
-import { relations } from "drizzle-orm";
 import {
   pgTable,
   pgEnum,
@@ -46,23 +45,7 @@ export const chapter = pgTable(
   ],
 );
 
-export const lesson = pgTable(
-  "lesson",
-  {
-    id: uuid("id").primaryKey().defaultRandom(),
-    chapterId: uuid("chapter_id")
-      .notNull()
-      .references(() => chapter.id, { onDelete: "cascade" }),
-    position: integer("position").notNull(),
-    title: text("title").notNull(),
-    contents: text("contents"),
-    objectives: text("objectives").array().notNull().default([]),
-  },
-  (table) => [
-    index("lesson_chapterId_idx").on(table.chapterId),
-    unique("lesson_chapterId_position_unq").on(table.chapterId, table.position),
-  ],
-);
+
 
 export const enrollment = pgTable(
   "enrollment",
@@ -82,33 +65,4 @@ export const enrollment = pgTable(
   ],
 );
 
-export const courseRelations = relations(course, ({ many }) => ({
-  chapters: many(chapter),
-  enrollments: many(enrollment),
-}));
 
-export const chapterRelations = relations(chapter, ({ one, many }) => ({
-  course: one(course, {
-    fields: [chapter.courseId],
-    references: [course.id],
-  }),
-  lessons: many(lesson),
-}));
-
-export const lessonRelations = relations(lesson, ({ one }) => ({
-  chapter: one(chapter, {
-    fields: [lesson.chapterId],
-    references: [chapter.id],
-  }),
-}));
-
-export const enrollmentRelations = relations(enrollment, ({ one }) => ({
-  user: one(user, {
-    fields: [enrollment.userId],
-    references: [user.id],
-  }),
-  course: one(course, {
-    fields: [enrollment.courseId],
-    references: [course.id],
-  }),
-}));
