@@ -1,7 +1,8 @@
 import { Router } from "express";
 
-import { createCourse } from "./courses.controller.js";
+import { createCourse, getCourseBySlug } from "./courses.controller.js";
 
 export const coursesRouter = Router();
 
 coursesRouter.post("/", createCourse);
+coursesRouter.get("/:slug", getCourseBySlug);
