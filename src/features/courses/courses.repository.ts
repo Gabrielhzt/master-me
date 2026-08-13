@@ -84,6 +84,22 @@ export const coursesRepository = {
     });
   },
 
+  findCoursesByUserId: async (userId: string) => {
+    const rows = await db.query.enrollment.findMany({
+      where: eq(enrollment.userId, userId),
+      orderBy: (e, { desc }) => [desc(e.createdAt)],
+      with: {
+        course: {
+          columns: {
+            prerequisites: false,
+          },
+        },
+      },
+    });
+
+    return rows.map((row) => row.course);
+  },
+
   enroll: async (userId: string, courseId: string) => {
     await db
       .insert(enrollment)
