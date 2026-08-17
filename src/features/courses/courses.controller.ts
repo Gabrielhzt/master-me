@@ -31,6 +31,18 @@ export const createCourse: RequestHandler = async (req, res, next) => {
   }
 };
 
+export const getUserCourses: RequestHandler = async (_req, res, next) => {
+  const { id: userId } = res.locals.user;
+
+  try {
+    const courses = await courseService.getUserCourses(userId);
+
+    res.status(200).json(courses);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getCourseBySlug: RequestHandler = async (req, res, next) => {
   const parsed = courseParamsSchema.safeParse(req.params);
 

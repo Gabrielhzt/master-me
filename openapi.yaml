@@ -23,6 +23,54 @@ paths:
                     type: string
                     example: ok
   /courses:
+    get:
+      summary: List the authenticated user's courses
+      description: |
+        Returns the courses the authenticated user is enrolled in, ordered by
+        most recently enrolled first. Each entry omits prerequisites and chapters.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of the user's enrolled courses.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CourseSummary"
+        "401":
+          description: Unauthorized. The request lacks valid session authentication.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Too many requests. Rate limit exceeded (10 requests per minute).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          headers:
+            RateLimit-Limit:
+              schema:
+                type: integer
+              description: The number of allowed requests in the current period.
+            RateLimit-Remaining:
+              schema:
+                type: integer
+              description: The number of remaining requests in the current period.
+            RateLimit-Reset:
+              schema:
+                type: integer
+              description: The number of seconds remaining until the rate limit resets.
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       summary: Create or retrieve a course
       description: |
@@ -75,6 +123,75 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: Unprocessable entity. The topic was rejected because it is not recognized as a software development technology or framework.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Too many requests. Rate limit exceeded (10 requests per minute).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          headers:
+            RateLimit-Limit:
+              schema:
+                type: integer
+              description: The number of allowed requests in the current period.
+            RateLimit-Remaining:
+              schema:
+                type: integer
+              description: The number of remaining requests in the current period.
+            RateLimit-Reset:
+              schema:
+                type: integer
+              description: The number of seconds remaining until the rate limit resets.
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /courses/{slug}:
+    get:
+      summary: Get a course by slug
+      description: |
+        Returns the full course structure, including chapters and lesson
+        summaries (without lesson content), for the given course slug.
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: URL-friendly unique representation of the course topic.
+          schema:
+            type: string
+            minLength: 1
+            example: react-native
+      responses:
+        "200":
+          description: Course found and returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Course"
+        "400":
+          description: Invalid request parameters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized. The request lacks valid session authentication.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Course not found.
           content:
             application/json:
               schema:
@@ -311,6 +428,50 @@ components:
         - prerequisites
         - createdAt
         - chapters
+
+    CourseSummary:
+      type: object
+      description: Course record without prerequisites or chapters, as returned by the user's course list.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the course.
+          example: a4b12c85-bd91-4473-b788-b2a6886fe243
+        slug:
+          type: string
+          description: URL-friendly unique representation of the course topic.
+          example: react-native
+        topic:
+          type: string
+          description: The canonical, normalized name of the technology.
+          example: React Native
+        title:
+          type: string
+          description: Course title.
+          example: Mastering React Native
+        description:
+          type: string
+          description: A summary describing what the course covers.
+          example: An in-depth guide to building cross-platform mobile apps with React Native.
+        level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+          description: The target difficulty level.
+          example: intermediate
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the course was created.
+          example: "2026-08-11T13:30:00.000Z"
+      required:
+        - id
+        - slug
+        - topic
+        - title
+        - description
+        - level
+        - createdAt
 
     Chapter:
       type: object

@@ -54,6 +54,10 @@ export const courseService = {
     return { course: existing, cached };
   },
 
+  async getUserCourses(userId: string) {
+    return coursesRepository.findCoursesByUserId(userId);
+  },
+
   async getCourseBySlug(slug: string) {
     const course = await coursesRepository.findCourseBySlug(slug);
 
