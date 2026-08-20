@@ -1,0 +1,14 @@
+project_id      = "your-gcp-project-id"
+region          = "europe-west1"
+service_name    = "master-me-api-service"
+container_image = "europe-west1-docker.pkg.dev/your-gcp-project-id/cloud-run-apps/master-me-api:v1"
+
+env_vars = {
+  CLIENT_URL         = "http://localhost:3000"
+  DATABASE_URL       = "postgresql://postgres:password@localhost:5432/master-me"
+  BETTER_AUTH_SECRET = "replace-me-with-a-32-char-minimum-secret"
+  BETTER_AUTH_URL    = "http://localhost:3001"
+  RESEND_API_KEY     = "123"
+  EMAIL_FROM         = "onboarding@resend.dev"
+  GROQ_API_KEY       = "gsk_123"
+}
