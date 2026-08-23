@@ -8,3 +8,9 @@ dist
 *.log
 npm-debug.log*
 .DS_Store
+
+.terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
