@@ -1,7 +1,7 @@
 import { generateText, Output } from "ai";
 import { browserSearch } from "@ai-sdk/groq";
 
-import { courseModel } from "../../lib/ai.js";
+import { courseModel, researchModel } from "../../lib/ai.js";
 import { classificationSchema, courseSchema } from "./courses.schemas.js";
 
 /**
@@ -36,7 +36,7 @@ export async function researchTopic(
 ): Promise<string | null> {
   try {
     const { text } = await generateText({
-      model: courseModel,
+      model: researchModel,
       abortSignal: signal,
       tools: { browser_search: browserSearch({}) },
       toolChoice: "required",

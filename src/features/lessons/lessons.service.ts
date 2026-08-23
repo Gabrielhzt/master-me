@@ -9,10 +9,10 @@ export const lessonsService = {
     objectives: string[],
     signal: AbortSignal,
   ) => {
-    const { output } = await generateText({
+    const result = await generateText({
       model: lessonModel,
       abortSignal: signal,
-      maxOutputTokens: 4000,
+      maxOutputTokens: 8000,
       output: Output.object({
         name: "LessonContent",
         description: "The generated markdown content of the lesson",
@@ -27,7 +27,22 @@ export const lessonsService = {
         `Return a JSON object where the "contents" field contains the complete, in-depth lesson content written in markdown format.`,
     });
 
-    return output;
+    // .output throws AI_NoOutputGeneratedError with no context when the model
+    // doesn't finish with finishReason "stop" (e.g. hit maxOutputTokens, or the
+    // provider rejected/truncated it). Log the rest of the result — which is
+    // always readable — before letting that opaque error propagate.
+    try {
+      return result.output;
+    } catch (error) {
+      console.error("generateLessonContent: no output produced", {
+        finishReason: result.finishReason,
+        rawFinishReason: result.rawFinishReason,
+        warnings: result.warnings,
+        textLength: result.text?.length,
+        textPreview: result.text?.slice(0, 1000),
+      });
+      throw error;
+    }
   },
 
   getLesson: async (lessonId: string) => {
