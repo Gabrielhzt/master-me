@@ -1,0 +1,13 @@
+node_modules
+dist
+npm-debug.log*
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+compose*.yaml
+docker-compose*.yml
+Dockerfile*
+.agents/
+.gemini/
