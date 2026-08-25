@@ -22,6 +22,8 @@ const envSchema = z.object({
   GROQ_API_KEY: z
     .string()
     .startsWith("gsk_", "Groq API keys start with 'gsk_'"),
+
+  MISTRAL_API_KEY: z.string().min(1),
 });
 
 const parsed = envSchema.safeParse(process.env);
