@@ -22,3 +22,9 @@ variable "env_vars" {
   description = "Application environment variables"
   type        = map(string)
 }
+
+variable "custom_domain" {
+  description = "Custom domain to map to Cloud Run (e.g. api.master-me.dev)"
+  type        = string
+  default     = "api.master-me.dev"
+}

@@ -6,6 +6,8 @@ import { env } from "../config/env.js";
 import { magicLink } from "better-auth/plugins";
 import { sendEmail } from "./email.js";
 
+const isProd = env.NODE_ENV === "production";
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -13,6 +15,16 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
   trustedOrigins: [env.CLIENT_URL],
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: isProd,
+      domain: ".master-me.dev",
+    },
+    defaultCookieAttributes: {
+      sameSite: "lax",
+      secure: isProd,
+    },
+  },
   plugins: [
     magicLink({
       sendMagicLink: async ({ email, url }) => {

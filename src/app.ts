@@ -36,6 +36,10 @@ app.use(express.json());
 app.get("/health", (_req, res) => {
   res.status(200).json({
     status: "ok",
+    version: env.APP_VERSION,
+    revision: process.env.K_REVISION ?? "local",
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
   });
 });
 

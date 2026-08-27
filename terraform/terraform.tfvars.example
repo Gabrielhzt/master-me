@@ -11,4 +11,6 @@ env_vars = {
   RESEND_API_KEY     = "123"
   EMAIL_FROM         = "onboarding@resend.dev"
   GROQ_API_KEY       = "gsk_123"
+  MISTRAL_API_KEY    = "your-mistral-api-key"
+  APP_VERSION        = "1.0.0"
 }
