@@ -24,6 +24,8 @@ const envSchema = z.object({
     .startsWith("gsk_", "Groq API keys start with 'gsk_'"),
 
   MISTRAL_API_KEY: z.string().min(1),
+
+  APP_VERSION: z.string().default(process.env.npm_package_version || "1.0.0"),
 });
 
 const parsed = envSchema.safeParse(process.env);

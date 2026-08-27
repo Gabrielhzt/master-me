@@ -12,3 +12,8 @@ output "service_account_email" {
   description = "The dedicated runtime service account email"
   value       = google_service_account.cloud_run_sa.email
 }
+
+output "domain_mapping_dns_records" {
+  description = "The DNS resource records to add to Name.com for api.master-me.dev"
+  value       = google_cloud_run_domain_mapping.api_domain.status[0].resource_records
+}

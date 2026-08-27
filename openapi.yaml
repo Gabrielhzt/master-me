@@ -22,6 +22,19 @@ paths:
                   status:
                     type: string
                     example: ok
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  revision:
+                    type: string
+                    example: "master-me-api-service-00002-abc"
+                  uptime:
+                    type: integer
+                    example: 320
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-08-27T08:47:00.000Z"
   /courses:
     get:
       summary: List the authenticated user's courses
